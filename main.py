@@ -20,54 +20,10 @@ sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (10, 6)
 
 
+# ==========================================
+# BLOQUE 2: Gráficas
+# ==========================================
 
-    
-
-def main():
-    df = cargar_datos()
-    resumen_datos(df)
-
-    X = df.drop('num', axis=1)
-    y = df['num']
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-
-    preprocessor = construir_preprocesador(X)
-
-    print("\nEntrenando modelo base (Regresión Logística)...")
-    baseline_pipeline = entrenar_baseline(preprocessor, X_train, y_train)
-    y_pred_baseline = baseline_pipeline.predict(X_test)
-    y_proba_baseline = baseline_pipeline.predict_proba(X_test)[:, 1]
-    print("\nMétricas del modelo base:")
-    baseline_metrics = evaluate_model(y_test, y_pred_baseline, y_proba_baseline)
-
-    print("\nEntrenando XGBoost con búsqueda de hiperparámetros...")
-    best_xgb = entrenar_xgboost(preprocessor, X_train, y_train, cv)
-    y_pred_xgb = best_xgb.predict(X_test)
-    y_proba_xgb = best_xgb.predict_proba(X_test)[:, 1]
-    print("\nMétricas del modelo XGBoost:")
-    xgb_metrics = evaluate_model(y_test, y_pred_xgb, y_proba_xgb)
-
-    df_importancias = obtener_importancias(best_xgb)
-
-    contexto = {
-        'df': df,
-        'y_test': y_test,
-        'y_pred_baseline': y_pred_baseline,
-        'y_pred_xgb': y_pred_xgb,
-        'df_importancias': df_importancias,
-        'baseline_metrics': baseline_metrics,
-        'xgb_metrics': xgb_metrics
-    }
-
-    menu_graficas(contexto)
-
-if __name__ == "__main__":
-    main()
-    
 def grafica_distribucion(df):
     plt.figure(figsize=(6, 4))
     sns.countplot(x='num', data=df, hue='num', palette='viridis', legend=False)
@@ -169,3 +125,53 @@ def menu_graficas(contexto):
         else:
             print("Opción no válida, intenta de nuevo.")
 
+
+# ==========================================
+# BLOQUE 4: Flujo principal
+# ==========================================
+
+def main():
+    df = cargar_datos()
+    resumen_datos(df)
+
+    X = df.drop('num', axis=1)
+    y = df['num']
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    preprocessor = construir_preprocesador(X)
+
+    print("\nEntrenando modelo base (Regresión Logística)...")
+    baseline_pipeline = entrenar_baseline(preprocessor, X_train, y_train)
+    y_pred_baseline = baseline_pipeline.predict(X_test)
+    y_proba_baseline = baseline_pipeline.predict_proba(X_test)[:, 1]
+    print("\nMétricas del modelo base:")
+    baseline_metrics = evaluate_model(y_test, y_pred_baseline, y_proba_baseline)
+
+    print("\nEntrenando XGBoost con búsqueda de hiperparámetros...")
+    best_xgb = entrenar_xgboost(preprocessor, X_train, y_train, cv)
+    y_pred_xgb = best_xgb.predict(X_test)
+    y_proba_xgb = best_xgb.predict_proba(X_test)[:, 1]
+    print("\nMétricas del modelo XGBoost:")
+    xgb_metrics = evaluate_model(y_test, y_pred_xgb, y_proba_xgb)
+
+    df_importancias = obtener_importancias(best_xgb)
+
+    contexto = {
+        'df': df,
+        'y_test': y_test,
+        'y_pred_baseline': y_pred_baseline,
+        'y_pred_xgb': y_pred_xgb,
+        'df_importancias': df_importancias,
+        'baseline_metrics': baseline_metrics,
+        'xgb_metrics': xgb_metrics
+    }
+
+    menu_graficas(contexto)
+
+
+if __name__ == "__main__":
+    main()
